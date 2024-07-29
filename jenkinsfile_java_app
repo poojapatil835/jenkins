@@ -1,32 +1,36 @@
 pipeline {
     agent any
-    tools {
-        'maven_3.9.8'
-    }
-
     stages {
-        staeg ('pre install'){
-            steps {
-                sh '''
-                apt update && apt install mvn -y
-                '''
-            }
-        }
         stage('code checkout') {
             steps {
-                 checkout([$class: 'GitSCM',
-                        branches: [[name: 'dev']],
-                        userRemoteConfigs: [[url: 'https://github.com/harshaprakash100/ip_app.git',
-                        credentialsId: 'github_hp']]]) 
-
+                checkout([$class: 'GitSCM',
+                        branches: [[name: 'main']],
+                        userRemoteConfigs: [[url: 'https://github.com/harshaprakash100/java_app.git',
+                        credentialsId: 'github_hp']]])
             }
         }
-        stage ('unit testing'){
+
+
+        stage ('unit testing') {
             steps {
                 sh 'mvn test'
+                
+            }
+        } 
+        
+        stage ('integeration testing') {
+            steps {
+                sh 'mvn-integeration test'
             }
         }
-             stage ('integeration testing'){
+        stage ('load testing'){
             steps {
-                sh 'mvn integeration-test'
-        }   }
+                sh 'mvn verify'
+            }
+        }
+    
+                
+
+    }
+
+}
