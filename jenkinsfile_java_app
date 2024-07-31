@@ -5,7 +5,7 @@ pipeline {
             steps {
                 checkout([$class: 'GitSCM',
                         branches: [[name: 'main']],
-                        userRemoteConfigs: [[url: 'https://github.com/poojapatil835/java_app.git',
+                        userRemoteConfigs: [[url: 'https://github.com/poojapatil835/jenkins.git',
                         credentialsId: 'github_token']]])
             }
         }
