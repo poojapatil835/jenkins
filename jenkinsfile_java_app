@@ -1,39 +1,79 @@
 pipeline {
     agent any
-     tools {
-        maven  'maven_3.9.8'
-     }
+
+    tools {
+        maven 'maven_3.9.8'
+    }
+
     stages {
-        stage('code checkout') {
+        stage('Code Checkout') {
             steps {
                 checkout([$class: 'GitSCM',
                         branches: [[name: 'main']],
-                        userRemoteConfigs: [[url: 'https://github.com/poojapatil835/jenkins.git',
-                        credentialsId: 'github_token']]])
+                        userRemoteConfigs: [[url: 'https://github.com/harshaprakash100/java_app.git',
+                        credentialsId: 'github_hp']]])
             }
         }
 
-
-        stage ('unit testing') {
+        stage('Unit Testing') {
             steps {
-                sh 'mvn test'
-                
-            }
-        } 
-        
-        stage ('integeration testing') {
-            steps {
-                sh 'mvn-integeration test'
+                sh '''
+                    cd ./calculator_app
+                    mvn test
+                '''
             }
         }
-        stage ('load testing'){
+
+        stage('Integration Testing') {
             steps {
-                sh 'mvn verify'
+                dir('./calculator_app') {
+                    sh 'mvn integration-test'
+                }
             }
         }
-    
-                
 
+        stage('Load Testing') {
+            steps {
+                dir('./calculator_app') {
+                    sh 'mvn clean verify'
+                }
+            }
+        }
+
+        stage('Check Files') {
+            steps {
+                dir('./calculator_app/') {
+                    sh 'tree'
+                }
+            }
+        }
+
+        stage('Deploy Tomcat10') {
+            input {
+                message "Do you want to deploy calculator.war to Tomcat10?"
+                parameters {
+                    choice(name: 'CHOICES', choices: ['yes', 'no'], description: '')
+                }
+            }
+            steps {
+                script {
+                    if (CHOICES == 'yes') {
+                        deploy adapters: [tomcat9(credentialsId: 'tomcat_manager', url: 'http://3.110.27.147:8080', path: '')],
+                                        contextPath: '/calculator',
+                                        war: 'calculator_app/target/calculator.war'
+                    } else {
+                        echo "Skipping deployment to Tomcat10"
+                    }
+                }
+            }
+        }
     }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
 
 }
